@@ -1,11 +1,17 @@
 package com.example.unitTestDemo.service;
 
 import com.example.unitTestDemo.model.User;
+import com.example.unitTestDemo.repository.UserRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class UserService {
-    public UserService() {
+    private final UserRepository repo;
+
+    public UserService(UserRepository repo) {
+        this.repo = repo;
     }
 
     public boolean isAdult(User user) {
@@ -20,5 +26,21 @@ public class UserService {
         if (user.getAge() < 18) return "MINOR";
         if (user.getAge() < 60) return "ADULT";
         return "SENIOR";
+    }
+
+    public String getUserName(Long id) {
+        return repo.getReferenceById(id).getName();
+    }
+
+    public User saveUser(User user) {
+        return repo.save(user);
+    }
+
+    public void deleteUser(Long id) {
+        repo.deleteById(id);
+    }
+
+    public List<User> getAllUsers() {
+        return repo.findAll();
     }
 }
