@@ -3,9 +3,7 @@ package com.example.unitTestDemo.service;
 import com.example.unitTestDemo.model.User;
 import com.example.unitTestDemo.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -38,14 +36,25 @@ public class UserServiceTest {
     static List<User> allUsers;
 
     @BeforeAll
-    static void setup() throws SQLException {
+    static void setup() throws SQLException {// Open a DB connection just once for all tests
+        testDbConnection = DriverManager.getConnection("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
+        System.out.println("DB connection opened for all tests");
+    }
+
+    @BeforeEach
+    void init() {
         user1 = new User(1L, "Sangeevan", 25);
         user2 = new User(2L, "Sangee", 65);
         allUsers = List.of(user1, user2);
+        System.out.println("Set User Data");
+    }
 
-        // Open a DB connection just once for all tests
-        testDbConnection = DriverManager.getConnection("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
-        System.out.println("DB connection opened for all tests");
+    @AfterEach
+    void reset() {
+        user1 = null;
+        user2 = null;
+        allUsers = null;
+        System.out.println("Reset User Data");
     }
 
     @AfterAll
