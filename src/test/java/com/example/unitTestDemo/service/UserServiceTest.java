@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -32,6 +34,9 @@ public class UserServiceTest {
 
     @InjectMocks
     UserService service;
+
+    @Captor
+    ArgumentCaptor<User> userCaptor;
 
     private static Connection testDbConnection;
 
@@ -82,8 +87,6 @@ public class UserServiceTest {
         User user = new User(1L, "Test", age);
 
         assertEquals(expected, service.getUserCategory(user));
-
-        System.out.println("Executed Parameterized Test");
     }
 
     // Separate method for test data
@@ -109,11 +112,20 @@ public class UserServiceTest {
     @Test
     void testSaveUser() {
         when(repo.save(any())).thenReturn(user1);
+
         User result = service.saveUser(user1);
 
         assertEquals("Sangeevan", result.getName());
-
         assertSame(user1, result);
+
+        // **capture the argument passed to repo.save**
+        verify(repo).save(userCaptor.capture());
+        User capturedUser = userCaptor.getValue();
+
+        // assert on captured object
+        assertEquals(1L, capturedUser.getId());
+        assertEquals("Sangeevan", capturedUser.getName());
+        assertEquals(25, capturedUser.getAge());
     }
 
     @Test
