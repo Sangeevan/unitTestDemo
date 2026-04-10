@@ -2,16 +2,14 @@ package com.example.unitTestDemo.service;
 
 import com.example.unitTestDemo.model.User;
 import com.example.unitTestDemo.repository.UserRepository;
+import com.example.unitTestDemo.util.UserUtils;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.Connection;
@@ -73,7 +71,11 @@ public class UserServiceTest {
 
     @Test
     void testIsAdult() {
-        assertTrue(service.isAdult(user1));
+        try (MockedStatic<UserUtils> mocked = mockStatic(UserUtils.class)) {
+            mocked.when(() -> UserUtils.isAdult(user1)).thenReturn(true);
+
+            assertTrue(service.isAdult(user1));
+        }
     }
 
     @Test

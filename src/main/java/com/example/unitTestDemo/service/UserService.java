@@ -2,6 +2,7 @@ package com.example.unitTestDemo.service;
 
 import com.example.unitTestDemo.model.User;
 import com.example.unitTestDemo.repository.UserRepository;
+import com.example.unitTestDemo.util.UserUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,7 +16,7 @@ public class UserService {
     }
 
     public boolean isAdult(User user) {
-        return user.getAge() >= 18;
+        return UserUtils.isAdult(user);
     }
 
     public String formatUserName(User user) {
