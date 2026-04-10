@@ -5,6 +5,9 @@ import com.example.unitTestDemo.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -13,6 +16,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -22,7 +26,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserServiceTest {
     @Mock
     UserRepository repo;
@@ -64,25 +67,38 @@ public class UserServiceTest {
     }
 
     @Test
-    @Order(2)
     void testIsAdult() {
         assertTrue(service.isAdult(user1));
     }
 
     @Test
-    @Order(6)
     void testFormatUserName() {
         assertEquals("SANGEEVAN", service.formatUserName(user1));
     }
 
-    @Test
-    @Order(5)
-    void testUserCategory() {
-        assertEquals("SENIOR", service.getUserCategory(user2));
+    @ParameterizedTest
+    @MethodSource("userCategoryData")
+    void testUserCategory(int age, String expected) {
+        User user = new User(1L, "Test", age);
+
+        assertEquals(expected, service.getUserCategory(user));
+
+        System.out.println("Executed Parameterized Test");
+    }
+
+    // Separate method for test data
+    static Stream<Arguments> userCategoryData() {
+        return Stream.of(
+                Arguments.of(10, "MINOR"),
+                Arguments.of(17, "MINOR"),
+                Arguments.of(18, "ADULT"),
+                Arguments.of(30, "ADULT"),
+                Arguments.of(60, "SENIOR"),
+                Arguments.of(80, "SENIOR")
+        );
     }
 
     @Test
-    @Order(3)
     void testGetUserName() {
         when(repo.getReferenceById(1L)).thenReturn(user1);
         String result = service.getUserName(1L);
@@ -91,7 +107,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @Order(4)
     void testSaveUser() {
         when(repo.save(any())).thenReturn(user1);
         User result = service.saveUser(user1);
@@ -102,7 +117,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @Order(1)
     void testGetAllUsers() {
         when(repo.findAll()).thenReturn(allUsers);
         List<User> resultUsers = service.getAllUsers();
@@ -114,7 +128,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @Disabled
     void testUserNotFound() {
         when(repo.getReferenceById(2L)).thenThrow(EntityNotFoundException.class);
         assertThrows(EntityNotFoundException.class, () -> {
@@ -123,7 +136,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @Disabled
     void testDeleteUserCallsRepository() {
         Long userId = 1L;
         service.deleteUser(userId);
