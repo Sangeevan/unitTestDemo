@@ -3,12 +3,17 @@ package com.example.unitTestDemo.service;
 import com.example.unitTestDemo.model.User;
 import com.example.unitTestDemo.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,30 +31,50 @@ public class UserServiceTest {
     @InjectMocks
     UserService service;
 
+    private static Connection testDbConnection;
+
+    static User user1;
+    static User user2;
+    static List<User> allUsers;
+
+    @BeforeAll
+    static void setup() throws SQLException {
+        user1 = new User(1L, "Sangeevan", 25);
+        user2 = new User(2L, "Sangee", 65);
+        allUsers = List.of(user1, user2);
+
+        // Open a DB connection just once for all tests
+        testDbConnection = DriverManager.getConnection("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
+        System.out.println("DB connection opened for all tests");
+    }
+
+    @AfterAll
+    static void cleanup() throws SQLException {
+        // Close DB connection once all tests finish
+        if (testDbConnection != null && !testDbConnection.isClosed()) {
+            testDbConnection.close();
+        }
+        System.out.println("DB connection closed after all tests");
+    }
+
     @Test
     void testIsAdult() {
-        User user = new User(1L, "Sangeevan", 25);
-
-        assertTrue(service.isAdult(user));
+        assertTrue(service.isAdult(user1));
     }
 
     @Test
     void testFormatUserName() {
-        User user = new User(1L, "  sangeevan  ", 25);
-
-        assertEquals("SANGEEVAN", service.formatUserName(user));
+        assertEquals("SANGEEVAN", service.formatUserName(user1));
     }
 
     @Test
     void testUserCategory() {
-        User user = new User(1L, "Test", 65);
-
-        assertEquals("SENIOR", service.getUserCategory(user));
+        assertEquals("SENIOR", service.getUserCategory(user2));
     }
 
     @Test
     void testGetUserName() {
-        when(repo.getReferenceById(1L)).thenReturn(new User(1L, "Sangeevan", 30));
+        when(repo.getReferenceById(1L)).thenReturn(user1);
         String result = service.getUserName(1L);
 
         assertEquals("Sangeevan", result);
@@ -57,24 +82,22 @@ public class UserServiceTest {
 
     @Test
     void testSaveUser() {
-        User user = new User(1L, "Sangeevan", 30);
-        when(repo.save(any())).thenReturn(user);
-        User result = service.saveUser(user);
+        when(repo.save(any())).thenReturn(user1);
+        User result = service.saveUser(user1);
 
         assertEquals("Sangeevan", result.getName());
 
-        assertSame(user, result);
+        assertSame(user1, result);
     }
 
     @Test
     void testGetAllUsers() {
-        List<User> users = List.of(new User(1L, "Sangeevan", 30), new User(2L, "Sangee", 20));
-        when(repo.findAll()).thenReturn(users);
+        when(repo.findAll()).thenReturn(allUsers);
         List<User> resultUsers = service.getAllUsers();
 
         assertAll(
                 () -> assertEquals(2, resultUsers.size()),
-                () -> assertIterableEquals(users, resultUsers)
+                () -> assertIterableEquals(allUsers, resultUsers)
         );
     }
 
