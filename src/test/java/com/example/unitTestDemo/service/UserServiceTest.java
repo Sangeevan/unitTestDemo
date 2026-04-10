@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserServiceTest {
     @Mock
     UserRepository repo;
@@ -63,21 +64,25 @@ public class UserServiceTest {
     }
 
     @Test
+    @Order(2)
     void testIsAdult() {
         assertTrue(service.isAdult(user1));
     }
 
     @Test
+    @Order(6)
     void testFormatUserName() {
         assertEquals("SANGEEVAN", service.formatUserName(user1));
     }
 
     @Test
+    @Order(5)
     void testUserCategory() {
         assertEquals("SENIOR", service.getUserCategory(user2));
     }
 
     @Test
+    @Order(3)
     void testGetUserName() {
         when(repo.getReferenceById(1L)).thenReturn(user1);
         String result = service.getUserName(1L);
@@ -86,6 +91,7 @@ public class UserServiceTest {
     }
 
     @Test
+    @Order(4)
     void testSaveUser() {
         when(repo.save(any())).thenReturn(user1);
         User result = service.saveUser(user1);
@@ -96,6 +102,7 @@ public class UserServiceTest {
     }
 
     @Test
+    @Order(1)
     void testGetAllUsers() {
         when(repo.findAll()).thenReturn(allUsers);
         List<User> resultUsers = service.getAllUsers();
