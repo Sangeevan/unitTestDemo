@@ -12,9 +12,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -36,16 +33,9 @@ public class UserServiceTest {
     @Captor
     ArgumentCaptor<User> userCaptor;
 
-    private static Connection testDbConnection;
-
     static User user1;
     static User user2;
     static List<User> allUsers;
-
-    @BeforeAll
-    static void setup() throws SQLException {// Open a DB connection just once for all tests
-        testDbConnection = DriverManager.getConnection("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
-    }
 
     @BeforeEach
     void init() {
@@ -59,14 +49,6 @@ public class UserServiceTest {
         user1 = null;
         user2 = null;
         allUsers = null;
-    }
-
-    @AfterAll
-    static void cleanup() throws SQLException {
-        // Close DB connection once all tests finish
-        if (testDbConnection != null && !testDbConnection.isClosed()) {
-            testDbConnection.close();
-        }
     }
 
     @Test
